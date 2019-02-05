@@ -20,7 +20,7 @@ const char* mqttUser = "***";
 const char* mqttPassword = "***";
 
 // Ledarray
-LedArray* ledarray;
+LedArray ledarray (LED0,LED1,LED2,LED3,LED4);
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -55,8 +55,6 @@ void setup() {
  
     }
   }
-
-  ledarray = new LedArray(LED0,LED1,LED2,LED3,LED4);
  
   client.publish("esp/test", "Hello from ESP8266");
   client.subscribe("esp/test");
@@ -129,7 +127,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("led4: " + String(cled4));
 
     // Sending to LedArray
-    ledarray->Pwm(cled0, cled1, cled2, cled3, cled4);
+    ledarray.Pwm(cled0, cled1, cled2, cled3, cled4);
   }
   free(bufferString);
   
