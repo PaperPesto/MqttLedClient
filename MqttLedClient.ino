@@ -41,36 +41,12 @@ void setup() {
  
   Serial.begin(115200);
 
-  // Connessione wifi
-  //WiFi.config(ip);  // Indirizzo ip statico (commentare se DHCP)
-  WiFi.begin(ssid, password);
- 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.println("Connecting to WiFi..");
-  }
-  Serial.println("Connected to the WiFi network");
-  ip = WiFi.localIP();
-  Serial.print("Ip: ");
-  Serial.println(ip);
+  connectToWifi();
+  
   refreshLedStatus();
 
-  // Connessione broker
-  mqttClient.setServer(mqttServer, mqttPort);
-  mqttClient.setCallback(callback);
- 
   while (!mqttClient.connected()) {
-    Serial.println("Connecting to MQTT broker...");
- 
-    if (mqttClient.connect("ESP8266Client", mqttUser, mqttPassword )) {
- 
-      Serial.println("connected");
-    } else {
- 
-      Serial.print("failed with state ");
-      Serial.print(mqttClient.state());
-      delay(2000);
-    }
+    connectToBroker();
   }
 
   refreshLedStatus();
@@ -173,9 +149,47 @@ void refreshLedStatus(){
       led_broker_status.On();
     }
 }
+
+// Connessione broker
+void connectToBroker(){
+
+  mqttClient.setServer(mqttServer, mqttPort);
+  mqttClient.setCallback(callback);
+  
+  Serial.println("Connecting to MQTT broker...");
+  if (mqttClient.connect("ESP8266Client", mqttUser, mqttPassword )) {
+
+    Serial.println("connected");
+  } else {
+
+    Serial.print("failed with state ");
+    Serial.print(mqttClient.state());
+    delay(2000);
+  }
+}
+
+// Connessione WiFi
+void connectToWifi(){
+  //WiFi.config(ip);  // Indirizzo ip statico (commentare se DHCP)
+  WiFi.begin(ssid, password);
  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+  }
+  Serial.println("Connected to the WiFi network");
+  ip = WiFi.localIP();
+  Serial.print("Ip: ");
+  Serial.println(ip);
+}
+
+
 void loop() {
   mqttClient.loop();
 
   refreshLedStatus();
+
+  // Controllo connessioni ed evenutale riconnessione
+  if(mqttClient.state() != MQTT_CONNECTED)  connectToBroker();
+  if(WiFi.status() != WL_CONNECTED) connectToWifi();
 }
