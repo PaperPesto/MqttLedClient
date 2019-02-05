@@ -18,6 +18,9 @@ const char* mqttServer = "***";
 const int mqttPort = 000;
 const char* mqttUser = "***";
 const char* mqttPassword = "***";
+// Network status
+bool wifiConnection_Status = false;
+bool brokerConnection_Status = false;
 
 // Ledarray
 LedArray ledarray (LED0,LED1,LED2,LED3,LED4);
