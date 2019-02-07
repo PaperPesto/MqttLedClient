@@ -129,6 +129,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println("-----------------------");
 }
 
+// Refresha le lucette delle connessioni
 void refreshLedStatus(){
   if(WiFi.status() != WL_CONNECTED){
     Serial.println("WiFi is off");
