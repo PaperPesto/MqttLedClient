@@ -57,6 +57,12 @@ void setup() {
 }
  
 void callback(char* topic, byte* payload, unsigned int length) {
+  
+  // 1 - parser topic. in base al topic posso scegliere più strade
+  // (char* inputtopic, char* matchtopic, function callback_func) => { if(matchtopic == inputtopic) callback_func(); }        
+  // 2 - json parser del payload (all'interno della stessa funzionalità definita dal topic)
+  // 
+  // 3 - Nel caso della funzionalità classica (probabilmente l'unica), estrarre i valori int dal json e darli in pasto al LedArray (che funge da controller)
  
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
