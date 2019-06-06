@@ -2,65 +2,57 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "LedArray.h"
+#include "Led.h"
 
+// Gpio connesse ai led
 #define LED0 16
 #define LED1 5
 #define LED2 4
 #define LED3 0
 #define LED4 2
 
+// Gpio connesse ai led per lo status del network
+#define LEDS1 14
+#define LEDS2 12
+
 // Configurazione Wifi
 const char* ssid = "***";
 const char* password =  "***";
+//IPAddress ip(192, 168, 1, 50);
+IPAddress ip;
 
 // Configurazione MQTT
 const char* mqttServer = "***";
 const int mqttPort = 000;
 const char* mqttUser = "***";
 const char* mqttPassword = "***";
-// Network status
-bool wifiConnection_Status = false;
-bool brokerConnection_Status = false;
 
 // Ledarray
-LedArray ledarray (LED0,LED1,LED2,LED3,LED4);
+LedArray ledarray (LED0, LED1, LED2, LED3, LED4);
+
+// LedNetworkStatus
+Led led_wifi_status = Led(LEDS1);
+Led led_broker_status = Led(LEDS2);
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient mqttClient(espClient);
  
 void setup() {
  
   Serial.begin(115200);
- 
-  WiFi.begin(ssid, password);
- 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.println("Connecting to WiFi..");
+
+  connectToWifi();
+  
+  refreshLedStatus();
+
+  while (!mqttClient.connected()) {
+    connectToBroker();
   }
-  Serial.println("Connected to the WiFi network");
+
+  refreshLedStatus();
  
-  client.setServer(mqttServer, mqttPort);
-  client.setCallback(callback);
- 
-  while (!client.connected()) {
-    Serial.println("Connecting to MQTT...");
- 
-    if (client.connect("ESP8266Client", mqttUser, mqttPassword )) {
- 
-      Serial.println("connected");  
- 
-    } else {
- 
-      Serial.print("failed with state ");
-      Serial.print(client.state());
-      delay(2000);
- 
-    }
-  }
- 
-  client.publish("esp/test", "Hello from ESP8266");
-  client.subscribe("esp/test");
+  mqttClient.publish("esp/test", "Hello from ESP8266");
+  mqttClient.subscribe("esp/test");
  
 }
  
@@ -136,8 +128,69 @@ void callback(char* topic, byte* payload, unsigned int length) {
   
   Serial.println("-----------------------");
 }
+
+// Refresha le lucette delle connessioni
+void refreshLedStatus(){
+  if(WiFi.status() != WL_CONNECTED){
+    Serial.println("WiFi is off");
+    led_wifi_status.Off();
+  }
+    else {
+      Serial.println("Wifi is On");
+      led_wifi_status.On();
+    }
+
+  if(mqttClient.state() != MQTT_CONNECTED)
+  {
+    Serial.println("mqtt is off");
+    led_broker_status.Off();
+  }
+    else{
+      Serial.println("mqtt is on");
+      led_broker_status.On();
+    }
+}
+
+// Connessione broker
+void connectToBroker(){
+
+  mqttClient.setServer(mqttServer, mqttPort);
+  mqttClient.setCallback(callback);
+  
+  Serial.println("Connecting to MQTT broker...");
+  if (mqttClient.connect("ESP8266Client", mqttUser, mqttPassword )) {
+
+    Serial.println("connected");
+  } else {
+
+    Serial.print("failed with state ");
+    Serial.print(mqttClient.state());
+    delay(2000);
+  }
+}
+
+// Connessione WiFi
+void connectToWifi(){
+  //WiFi.config(ip);  // Indirizzo ip statico (commentare se DHCP)
+  WiFi.begin(ssid, password);
  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+  }
+  Serial.println("Connected to the WiFi network");
+  ip = WiFi.localIP();
+  Serial.print("Ip: ");
+  Serial.println(ip);
+}
+
+
 void loop() {
-  //client.publish("aaa/test", "Publishing, cane");
-  client.loop();
+  mqttClient.loop();
+
+  refreshLedStatus();
+
+  // Controllo connessioni ed evenutale riconnessione
+  if(mqttClient.state() != MQTT_CONNECTED)  connectToBroker();
+  if(WiFi.status() != WL_CONNECTED) connectToWifi();
 }
