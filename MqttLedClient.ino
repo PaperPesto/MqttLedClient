@@ -50,10 +50,6 @@ void setup() {
   }
 
   refreshLedStatus();
- 
-  mqttClient.publish("esp/test", "Hello from ESP8266");
-  mqttClient.subscribe("esp/test");
- 
 }
  
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -167,6 +163,9 @@ void connectToBroker(){
   if (mqttClient.connect("ESP8266Client", mqttUser, mqttPassword )) {
 
     Serial.println("connected");
+    
+    mqttClient.publish("esp/test", "Hello from ESP8266");
+    mqttClient.subscribe("esp/test");
   } else {
 
     Serial.print("failed with state ");
