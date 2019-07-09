@@ -13,10 +13,19 @@ const char *ssid = "***";
 const char *password = "****";
 
 // Configurazione MQTT
-const char *mqttServer = "***";
+const char* mqttServer = "***";
 const int mqttPort = ***;
-const char *mqttUser = "***";
-const char *mqttPassword = "";
+const char* mqttClientId = "***";
+const char* mqttUsername = "***";
+const char* mqttPassword = "";
+
+// Topic MQTT
+const char* topicLed0 = "qiot/things/paperpesto/librerialed/led0";
+const char* topicLed1 = "qiot/things/paperpesto/librerialed/led1";
+const char* topicLed2 = "qiot/things/paperpesto/librerialed/led2";
+const char* topicLed3 = "qiot/things/paperpesto/librerialed/led3";
+const char* topicLed4 = "qiot/things/paperpesto/librerialed/led4";
+
 // Network status
 bool wifiConnection_Status = false;
 bool brokerConnection_Status = false;
@@ -59,17 +68,16 @@ void setup()
   {
     Serial.println("Connecting to MQTT...");
 
-    if (client.connect("ESP8266Client", mqttUser, mqttPassword))
+    if (client.connect(mqttClientId, mqttUsername, mqttPassword))
     {
-
       Serial.println("Connected to broker");
 
       //client.publish("esp/test", "Hello from ESP8266");
-      client.subscribe("/v1.6/devices/libreria-led/led0/lv");
-      client.subscribe("/v1.6/devices/libreria-led/led1/lv");
-      client.subscribe("/v1.6/devices/libreria-led/led2/lv");
-      client.subscribe("/v1.6/devices/libreria-led/led3/lv");
-      client.subscribe("/v1.6/devices/libreria-led/led4/lv");
+      client.subscribe(topicLed0);
+      client.subscribe(topicLed1);
+      client.subscribe(topicLed2);
+      client.subscribe(topicLed3);
+      client.subscribe(topicLed4);
     }
     else
     {
@@ -110,27 +118,27 @@ void callback(char *topic, byte *payload, unsigned int length)
   Serial.print("Buffer string: ");
   Serial.println(bufferString);
 
-  if (strcmp(topic, "/v1.6/devices/libreria-led/led0/lv") == 0)
+  if (strcmp(topic, topicLed0) == 0)
   {
     led0 = atoi(bufferString);
   }
 
-  if (strcmp(topic, "/v1.6/devices/libreria-led/led1/lv") == 0)
+  if (strcmp(topic, topicLed1) == 0)
   {
     led1 = atoi(bufferString);
   }
 
-  if (strcmp(topic, "/v1.6/devices/libreria-led/led2/lv") == 0)
+  if (strcmp(topic, topicLed2) == 0)
   {
     led2 = atoi(bufferString);
   }
 
-  if (strcmp(topic, "/v1.6/devices/libreria-led/led3/lv") == 0)
+  if (strcmp(topic, topicLed3) == 0)
   {
     led3 = atoi(bufferString);
   }
 
-  if (strcmp(topic, "/v1.6/devices/libreria-led/led4/lv") == 0)
+  if (strcmp(topic, topicLed4) == 0)
   {
     led4 = atoi(bufferString);
   }
